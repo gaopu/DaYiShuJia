@@ -21,16 +21,24 @@
 #include "ls.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include<sys/ioctl.h>
+
+int MAX_LINE_LEN;	//终端宽度
+int available_char;	//当前打印行剩余的可打印字符数
 
 int main(int argc, char *argv[])
 {
+	//获取当前终端的宽度，并设置
+	struct winsize size;
+    ioctl(STDIN_FILENO,TIOCGWINSZ,&size);
+	MAX_LINE_LEN = size.ws_col;
+	available_char = MAX_LINE_LEN;
+	
 	int param = 0,i = 0,num = 0;
-	char path[300];		//path是文件名或者文件夹名
 	char opt;
 
 	//录入参数
-	opterr = 0;			//不显示参数错误信息
-	while ((opt = getopt(argc,argv,"alRtS")) != -1) {
+	while ((opt = getopt(argc,argv,"alRtSu")) != -1) {
 		if (opt == 'a') {
 			param |= PARAM_a;
 		} else if (opt == 'l') {
@@ -41,8 +49,10 @@ int main(int argc, char *argv[])
 			param |= PARAM_S;
 		} else if (opt == 't') {
 			param |= PARAM_t;
+		} else if (opt == 'u') {
+			param |= PARAM_u;
 		} else {
-			printf("对不起，目前只支持参数R,S,a,t和l.\n");
+			printf("对不起，目前只支持参数R,S,a,t,u和l.\n");
 			exit(0);
 		}
 	}
@@ -60,6 +70,8 @@ int main(int argc, char *argv[])
 		argc = 1;	//不让进入下面的循环
 	}
 
+	//path是文件名或者文件夹名
+	char path[MAX_FILE_LEN];
 	for (i = 1;i < argc;i++)
 	{
 		if (argv[i][0] != '-')
